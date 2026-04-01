@@ -21,7 +21,7 @@ module "mdp" {
   source  = "cloudnationhq/mdp/azure"
   version = "~> 1.0"
 
-  pool = {
+  config = {
     name                = module.naming.managed_devops_pool.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name

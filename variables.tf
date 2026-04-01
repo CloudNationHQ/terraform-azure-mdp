@@ -1,4 +1,4 @@
-variable "pool" {
+variable "config" {
   description = "contains managed devops pool configuration"
   type = object({
     name                           = string
