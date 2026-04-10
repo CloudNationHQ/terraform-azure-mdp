@@ -1,12 +1,14 @@
 variable "config" {
   description = "contains managed devops pool configuration"
   type = object({
-    name                           = string
-    location                       = optional(string)
-    resource_group_name            = optional(string)
-    tags                           = optional(map(string))
-    maximum_concurrency            = optional(number, 1)
-    dev_center_project_resource_id = optional(string)
+    name                = string
+    location            = optional(string)
+    resource_group_name = optional(string)
+    tags                = optional(map(string))
+    maximum_concurrency = optional(number, 1)
+    work_folder         = optional(string)
+
+    dev_center_project_id = optional(string)
 
     dev_center = optional(object({
       name                              = string
@@ -34,74 +36,131 @@ variable "config" {
       }))
     }))
 
-    agent_profile = object({
-      kind                        = optional(string, "Stateless")
-      max_agent_lifetime          = optional(string)
-      grace_period_time_span      = optional(string)
-      resource_prediction_profile = optional(string)
-      prediction_preference       = optional(string)
-      resource_predictions_manual = optional(object({
-        time_zone = optional(string, "UTC")
-        days_data = optional(list(map(number)), [{}, {}, {}, {}, {}, {}, {}])
+    stateless_agent = optional(object({
+      automatic_resource_prediction = optional(object({
+        prediction_preference = optional(string, "Balanced")
       }))
-    })
+      manual_resource_prediction = optional(object({
+        time_zone_name    = optional(string, "UTC")
+        all_week_schedule = optional(number)
+        monday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        tuesday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        wednesday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        thursday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        friday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        saturday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        sunday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+      }))
+    }))
 
-    fabric_profile = object({
+    stateful_agent = optional(object({
+      grace_period_time_span = optional(string, "00:00:00")
+      maximum_agent_lifetime = optional(string, "7.00:00:00")
+      automatic_resource_prediction = optional(object({
+        prediction_preference = optional(string, "Balanced")
+      }))
+      manual_resource_prediction = optional(object({
+        time_zone_name    = optional(string, "UTC")
+        all_week_schedule = optional(number)
+        monday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        tuesday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        wednesday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        thursday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        friday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        saturday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+        sunday_schedule = optional(list(object({
+          count = number
+          time  = string
+        })), [])
+      }))
+    }))
+
+    virtual_machine_scale_set_fabric = object({
       sku_name                     = optional(string, "Standard_D2ads_v5")
-      os_disk_storage_account_type = optional(string)
-      logon_type                   = optional(string)
+      os_disk_storage_account_type = optional(string, "Standard")
       subnet_id                    = optional(string)
-      static_ip_address_count      = optional(number)
 
-      images = list(object({
+      image = list(object({
         well_known_image_name = optional(string)
-        resource_id           = optional(string)
+        id                    = optional(string)
         aliases               = optional(list(string))
-        buffer                = optional(string)
-        ephemeral_type        = optional(string)
+        buffer                = optional(string, "*")
       }))
 
-      data_disks = optional(list(object({
+      storage = optional(list(object({
+        disk_size_in_gb      = number
         caching              = optional(string)
-        disk_size_gigabytes  = optional(number)
         drive_letter         = optional(string)
-        storage_account_type = optional(string)
+        storage_account_type = optional(string, "Standard_LRS")
       })), [])
 
-      secrets_management = optional(object({
-        key_exportable             = bool
-        observed_certificates      = list(string)
-        certificate_store_location = optional(string)
-        certificate_store_name     = optional(string)
+      security = optional(object({
+        interactive_logon_enabled = optional(bool, false)
+        key_vault_management = optional(object({
+          key_vault_certificate_ids  = list(string)
+          certificate_store_location = optional(string)
+          certificate_store_name     = optional(string)
+          key_export_enabled         = optional(bool, false)
+        }))
       }))
     })
 
-    organization_profile = object({
-      kind  = optional(string, "AzureDevOps")
-      alias = optional(string)
-
-      organizations = optional(list(object({
+    azure_devops_organization = object({
+      organization = list(object({
         url         = string
-        alias       = optional(string)
+        parallelism = optional(number, 1)
         projects    = optional(list(string))
-        parallelism = optional(number)
-        open_access = optional(bool)
-      })), [])
-
-      permission_profile = optional(object({
-        kind   = optional(string, "CreatorOnly")
-        groups = optional(list(string))
-        users  = optional(list(string))
       }))
-
-      github_organizations = optional(list(object({
-        url          = string
-        repositories = optional(list(string))
-      })), [])
+      permission = optional(object({
+        kind = optional(string, "Inherit")
+        administrator_account = optional(object({
+          groups = optional(list(string))
+          users  = optional(list(string))
+        }))
+      }))
     })
 
     identity = optional(object({
-      type         = optional(string, "SystemAssigned")
+      type         = string
       identity_ids = optional(list(string), [])
     }))
 
@@ -118,11 +177,12 @@ variable "config" {
       delegated_managed_identity_resource_id = optional(string)
       skip_service_principal_aad_check       = optional(bool)
     }))
-
-    runtime_configuration = optional(object({
-      work_folder = optional(string)
-    }))
   })
+
+  validation {
+    condition     = (var.config.stateless_agent != null) != (var.config.stateful_agent != null)
+    error_message = "Exactly one of stateless_agent or stateful_agent must be set."
+  }
 }
 
 variable "location" {

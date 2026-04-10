@@ -34,34 +34,41 @@ module "mdp" {
       name = module.naming.dev_center_project.name
     }
 
-    agent_profile = {
-      kind                        = "Stateless"
-      resource_prediction_profile = "Manual"
-
-      resource_predictions_manual = {
-        time_zone = "UTC"
-        days_data = [
-          {},
-          { "07:00:00" = 2, "18:00:00" = 0 },
-          { "07:00:00" = 2, "18:00:00" = 0 },
-          { "07:00:00" = 2, "18:00:00" = 0 },
-          { "07:00:00" = 2, "18:00:00" = 0 },
-          { "07:00:00" = 2, "18:00:00" = 0 },
-          {},
+    stateless_agent = {
+      manual_resource_prediction = {
+        monday_schedule = [
+          { count = 2, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        tuesday_schedule = [
+          { count = 2, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        wednesday_schedule = [
+          { count = 2, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        thursday_schedule = [
+          { count = 2, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        friday_schedule = [
+          { count = 2, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
         ]
       }
     }
 
-    fabric_profile = {
-      sku_name = "Standard_D2ads_v5"
-      images = [{
+    virtual_machine_scale_set_fabric = {
+      image = [{
         well_known_image_name = "ubuntu-24.04/latest"
       }]
     }
 
-    organization_profile = {
-      organizations = [{
-        url = var.ado_organization_url
+    azure_devops_organization = {
+      organization = [{
+        url         = var.ado_organization_url
+        parallelism = 2
       }]
     }
 

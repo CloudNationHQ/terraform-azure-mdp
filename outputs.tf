@@ -1,6 +1,6 @@
 output "pool" {
   description = "contains managed devops pool configuration"
-  value       = azapi_resource.this
+  value       = azurerm_managed_devops_pool.this
 }
 
 output "dev_center" {

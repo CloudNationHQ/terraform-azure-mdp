@@ -4,14 +4,14 @@ Terraform module which creates Managed DevOps Pool resources on Azure.
 
 ## Features
 
-- Deploys Azure Managed DevOps Pools via the AzAPI provider
+- Deploys Azure Managed DevOps Pools via the native AzureRM provider
 - Optionally creates a Dev Center and Dev Center Project
 - Supports both Stateless and Stateful agent profiles
 - Supports Manual and Automatic resource prediction (stand-by agents)
-- Supports VMSS fabric profile with custom VM images and data disks
+- Supports VMSS fabric with custom VM images and data disks
 - Supports networking integration via subnet configuration
-- Supports Azure DevOps and GitHub organization profiles
-- Supports managed identity (System-assigned and User-assigned)
+- Supports Azure DevOps organization profiles
+- Supports User-assigned managed identity
 - Supports RBAC role assignments on the pool
 
 ## Usage
@@ -21,7 +21,7 @@ module "mdp" {
   source  = "cloudnationhq/mdp/azure"
   version = "~> 1.0"
 
-  pool = {
+  config = {
     name                = "pool-demo-dev"
     location            = "westeurope"
     resource_group_name = "rg-demo-dev"
@@ -34,19 +34,17 @@ module "mdp" {
       name = "dcp-demo-dev"
     }
 
-    agent_profile = {
-      kind = "Stateless"
-    }
+    stateless_agent = {}
 
-    fabric_profile = {
+    virtual_machine_scale_set_fabric = {
       sku_name = "Standard_D2ads_v5"
-      images = [{
+      image = [{
         well_known_image_name = "ubuntu-24.04/latest"
       }]
     }
 
-    organization_profile = {
-      organizations = [{
+    azure_devops_organization = {
+      organization = [{
         url = "https://dev.azure.com/myorg"
       }]
     }
@@ -63,48 +61,56 @@ module "mdp" {
   source  = "cloudnationhq/mdp/azure"
   version = "~> 1.0"
 
-  pool = {
+  config = {
     name                = "pool-demo-dev"
     location            = "westeurope"
     resource_group_name = "rg-demo-dev"
 
-    dev_center_project_resource_id = azurerm_dev_center_project.existing.id
+    dev_center_project_id = azurerm_dev_center_project.existing.id
 
-    agent_profile = {
-      kind                        = "Stateful"
-      max_agent_lifetime          = "7:00:00:00"
-      grace_period_time_span      = "1:00:00"
-      resource_prediction_profile = "Manual"
-
-      resource_predictions_manual = {
-        time_zone = "UTC"
-        days_data = [
-          {},
-          { "07:00:00" = 3, "18:00:00" = 0 },
-          { "07:00:00" = 3, "18:00:00" = 0 },
-          { "07:00:00" = 3, "18:00:00" = 0 },
-          { "07:00:00" = 3, "18:00:00" = 0 },
-          { "07:00:00" = 3, "18:00:00" = 0 },
-          {},
+    stateful_agent = {
+      maximum_agent_lifetime = "7.00:00:00"
+      grace_period_time_span = "1:00:00"
+      manual_resource_prediction = {
+        time_zone_name = "UTC"
+        monday_schedule = [
+          { count = 3, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        tuesday_schedule = [
+          { count = 3, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        wednesday_schedule = [
+          { count = 3, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        thursday_schedule = [
+          { count = 3, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
+        ]
+        friday_schedule = [
+          { count = 3, time = "07:00:00" },
+          { count = 0, time = "18:00:00" },
         ]
       }
     }
 
-    fabric_profile = {
-      sku_name = "Standard_D2_v5"
-      images = [{
+    virtual_machine_scale_set_fabric = {
+      sku_name  = "Standard_D2ads_v5"
+      subnet_id = azurerm_subnet.agents.id
+      image = [{
         well_known_image_name = "ubuntu-24.04/latest"
         aliases               = ["ubuntu-24.04"]
       }]
-      data_disks = [{
-        disk_size_gigabytes  = 20
+      storage = [{
+        disk_size_in_gb      = 20
         storage_account_type = "StandardSSD_LRS"
       }]
-      subnet_id = azurerm_subnet.agents.id
     }
 
-    organization_profile = {
-      organizations = [{
+    azure_devops_organization = {
+      organization = [{
         url      = "https://dev.azure.com/myorg"
         projects = ["my-project"]
       }]
@@ -130,10 +136,13 @@ Validation via Terratest. See [TESTING.md](TESTING.md) for more information.
 
 ## Notes
 
-- The `Microsoft.DevOpsInfrastructure/pools` resource requires the AzAPI provider as no native AzureRM resource exists yet.
-- `dev_center_project_resource_id` and the inline `dev_center_project` block are mutually exclusive — provide one or the other.
+- `dev_center_project_id` and the inline `dev_center_project` block are mutually exclusive — provide one or the other.
 - The `dev_center_project.dev_center_id` field is only needed when attaching an existing dev center not managed by this module.
-- Manual resource predictions (`days_data`) is a list of 7 maps (Sunday through Saturday). Use an empty map `{}` for off days.
+- Exactly one of `stateless_agent` or `stateful_agent` must be set.
+- Manual resource predictions use per-day schedule blocks (`monday_schedule` through `sunday_schedule`), each containing a list of `{ count, time }` entries. Omit a day block to leave that day idle. Use `all_week_schedule` for a flat 24/7 standby count instead.
+- Pool identity only supports `UserAssigned` type. Dev Center and Dev Center Project resources support `SystemAssigned` and `UserAssigned`.
+- GitHub organization profiles are not supported by `azurerm_managed_devops_pool`. Only Azure DevOps organizations are supported.
+- `os_disk_storage_account_type` accepts `Standard`, `Premium`, or `StandardSSD` (not the full `_LRS`-suffixed names used for data disks).
 
 ## Contributors
 
@@ -146,5 +155,5 @@ MIT Licensed. See [LICENSE](LICENSE) for full details.
 ## References
 
 - [Azure Managed DevOps Pools overview](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/overview?view=azure-devops)
-- [Microsoft.DevOpsInfrastructure/pools API reference](https://learn.microsoft.com/en-us/azure/templates/microsoft.devopsinfrastructure/pools?pivots=deployment-language-terraform)
+- [azurerm_managed_devops_pool resource](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/managed_devops_pool)
 - [AVM reference module](https://github.com/Azure/terraform-azurerm-avm-res-devopsinfrastructure-pool)

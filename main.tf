@@ -47,114 +47,230 @@ resource "azurerm_dev_center_project" "this" {
 }
 
 # managed devops pool
-resource "azapi_resource" "this" {
-  type      = "Microsoft.DevOpsInfrastructure/pools@2025-09-20"
-  name      = var.config.name
-  parent_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${coalesce(var.config.resource_group_name, var.resource_group_name)}"
-  location  = coalesce(var.config.location, var.location)
-  tags      = coalesce(var.config.tags, var.tags)
+resource "azurerm_managed_devops_pool" "this" {
+  name                = var.config.name
+  resource_group_name = coalesce(var.config.resource_group_name, var.resource_group_name)
+  location            = coalesce(var.config.location, var.location)
+  tags                = coalesce(var.config.tags, var.tags)
 
-  schema_validation_enabled = false
-  ignore_null_property      = true
-  response_export_values    = ["*"]
+  dev_center_project_id = coalesce(
+    var.config.dev_center_project_id,
+    try(azurerm_dev_center_project.this["default"].id, null)
+  )
+
+  maximum_concurrency = var.config.maximum_concurrency
+  work_folder         = var.config.work_folder
 
   dynamic "identity" {
-    for_each = try(var.config.identity, null) != null ? [var.config.identity] : []
-
+    for_each = var.config.identity != null ? { this = {} } : {}
     content {
-      type         = identity.value.type
-      identity_ids = try(identity.value.identity_ids, [])
+      type         = var.config.identity.type
+      identity_ids = var.config.identity.identity_ids
     }
   }
 
-  body = {
-    properties = {
-      devCenterProjectResourceId = coalesce(
-        var.config.dev_center_project_resource_id,
-        try(azurerm_dev_center_project.this["default"].id, null)
-      )
-      maximumConcurrency = var.config.maximum_concurrency
-
-      agentProfile = {
-        for k, v in {
-          kind                = var.config.agent_profile.kind
-          maxAgentLifetime    = var.config.agent_profile.max_agent_lifetime
-          gracePeriodTimeSpan = var.config.agent_profile.grace_period_time_span
-          resourcePredictionsProfile = var.config.agent_profile.resource_prediction_profile != null ? {
-            for k, v in {
-              kind                 = var.config.agent_profile.resource_prediction_profile
-              predictionPreference = var.config.agent_profile.prediction_preference
-            } : k => v if v != null
-          } : null
-          resourcePredictions = var.config.agent_profile.resource_predictions_manual != null ? {
-            timeZone = var.config.agent_profile.resource_predictions_manual.time_zone
-            daysData = var.config.agent_profile.resource_predictions_manual.days_data
-          } : null
-        } : k => v if v != null
-      }
-
-      fabricProfile = {
-        kind = "Vmss"
-        sku  = { name = var.config.fabric_profile.sku_name }
-        images = [for img in var.config.fabric_profile.images : {
-          wellKnownImageName = img.well_known_image_name
-          resourceId         = img.resource_id
-          aliases            = img.aliases
-          buffer             = img.buffer
-          ephemeralType      = img.ephemeral_type
-        }]
-        storageProfile = {
-          osDiskStorageAccountType = var.config.fabric_profile.os_disk_storage_account_type
-          dataDisks = [for disk in var.config.fabric_profile.data_disks : {
-            caching            = disk.caching
-            diskSizeGiB        = disk.disk_size_gigabytes
-            driveLetter        = disk.drive_letter
-            storageAccountType = disk.storage_account_type
-          }]
+  dynamic "stateless_agent" {
+    for_each = var.config.stateless_agent != null ? { this = {} } : {}
+    content {
+      dynamic "automatic_resource_prediction" {
+        for_each = var.config.stateless_agent.automatic_resource_prediction != null ? { this = {} } : {}
+        content {
+          prediction_preference = var.config.stateless_agent.automatic_resource_prediction.prediction_preference
         }
-        networkProfile = var.config.fabric_profile.subnet_id != null ? {
-          subnetId             = var.config.fabric_profile.subnet_id
-          staticIpAddressCount = var.config.fabric_profile.static_ip_address_count
-        } : null
-        osProfile = var.config.fabric_profile.logon_type != null || var.config.fabric_profile.secrets_management != null ? {
-          logonType = var.config.fabric_profile.logon_type
-          secretsManagementSettings = var.config.fabric_profile.secrets_management != null ? {
-            keyExportable            = var.config.fabric_profile.secrets_management.key_exportable
-            observedCertificates     = var.config.fabric_profile.secrets_management.observed_certificates
-            certificateStoreLocation = var.config.fabric_profile.secrets_management.certificate_store_location
-            certificateStoreName     = var.config.fabric_profile.secrets_management.certificate_store_name
-          } : null
-        } : null
       }
+      dynamic "manual_resource_prediction" {
+        for_each = var.config.stateless_agent.manual_resource_prediction != null ? { this = {} } : {}
+        content {
+          time_zone_name    = var.config.stateless_agent.manual_resource_prediction.time_zone_name
+          all_week_schedule = var.config.stateless_agent.manual_resource_prediction.all_week_schedule
+          dynamic "monday_schedule" {
+            for_each = var.config.stateless_agent.manual_resource_prediction.monday_schedule
+            content {
+              count = monday_schedule.value.count
+              time  = monday_schedule.value.time
+            }
+          }
+          dynamic "tuesday_schedule" {
+            for_each = var.config.stateless_agent.manual_resource_prediction.tuesday_schedule
+            content {
+              count = tuesday_schedule.value.count
+              time  = tuesday_schedule.value.time
+            }
+          }
+          dynamic "wednesday_schedule" {
+            for_each = var.config.stateless_agent.manual_resource_prediction.wednesday_schedule
+            content {
+              count = wednesday_schedule.value.count
+              time  = wednesday_schedule.value.time
+            }
+          }
+          dynamic "thursday_schedule" {
+            for_each = var.config.stateless_agent.manual_resource_prediction.thursday_schedule
+            content {
+              count = thursday_schedule.value.count
+              time  = thursday_schedule.value.time
+            }
+          }
+          dynamic "friday_schedule" {
+            for_each = var.config.stateless_agent.manual_resource_prediction.friday_schedule
+            content {
+              count = friday_schedule.value.count
+              time  = friday_schedule.value.time
+            }
+          }
+          dynamic "saturday_schedule" {
+            for_each = var.config.stateless_agent.manual_resource_prediction.saturday_schedule
+            content {
+              count = saturday_schedule.value.count
+              time  = saturday_schedule.value.time
+            }
+          }
+          dynamic "sunday_schedule" {
+            for_each = var.config.stateless_agent.manual_resource_prediction.sunday_schedule
+            content {
+              count = sunday_schedule.value.count
+              time  = sunday_schedule.value.time
+            }
+          }
+        }
+      }
+    }
+  }
 
-      organizationProfile = jsondecode(
-        var.config.organization_profile.kind == "GitHub" ? jsonencode({
-          kind = "GitHub"
-          organizations = [for org in var.config.organization_profile.github_organizations : {
-            url          = org.url
-            repositories = org.repositories
-          }]
-          }) : jsonencode({
-          kind  = "AzureDevOps"
-          alias = var.config.organization_profile.alias
-          organizations = [for org in var.config.organization_profile.organizations : {
-            url         = org.url
-            alias       = org.alias
-            projects    = org.projects
-            parallelism = org.parallelism
-            openAccess  = org.open_access
-          }]
-          permissionProfile = var.config.organization_profile.permission_profile != null ? {
-            kind   = var.config.organization_profile.permission_profile.kind
-            groups = var.config.organization_profile.permission_profile.groups
-            users  = var.config.organization_profile.permission_profile.users
-          } : null
-        })
-      )
+  dynamic "stateful_agent" {
+    for_each = var.config.stateful_agent != null ? { this = {} } : {}
+    content {
+      grace_period_time_span = var.config.stateful_agent.grace_period_time_span
+      maximum_agent_lifetime = var.config.stateful_agent.maximum_agent_lifetime
+      dynamic "automatic_resource_prediction" {
+        for_each = var.config.stateful_agent.automatic_resource_prediction != null ? { this = {} } : {}
+        content {
+          prediction_preference = var.config.stateful_agent.automatic_resource_prediction.prediction_preference
+        }
+      }
+      dynamic "manual_resource_prediction" {
+        for_each = var.config.stateful_agent.manual_resource_prediction != null ? { this = {} } : {}
+        content {
+          time_zone_name    = var.config.stateful_agent.manual_resource_prediction.time_zone_name
+          all_week_schedule = var.config.stateful_agent.manual_resource_prediction.all_week_schedule
+          dynamic "monday_schedule" {
+            for_each = var.config.stateful_agent.manual_resource_prediction.monday_schedule
+            content {
+              count = monday_schedule.value.count
+              time  = monday_schedule.value.time
+            }
+          }
+          dynamic "tuesday_schedule" {
+            for_each = var.config.stateful_agent.manual_resource_prediction.tuesday_schedule
+            content {
+              count = tuesday_schedule.value.count
+              time  = tuesday_schedule.value.time
+            }
+          }
+          dynamic "wednesday_schedule" {
+            for_each = var.config.stateful_agent.manual_resource_prediction.wednesday_schedule
+            content {
+              count = wednesday_schedule.value.count
+              time  = wednesday_schedule.value.time
+            }
+          }
+          dynamic "thursday_schedule" {
+            for_each = var.config.stateful_agent.manual_resource_prediction.thursday_schedule
+            content {
+              count = thursday_schedule.value.count
+              time  = thursday_schedule.value.time
+            }
+          }
+          dynamic "friday_schedule" {
+            for_each = var.config.stateful_agent.manual_resource_prediction.friday_schedule
+            content {
+              count = friday_schedule.value.count
+              time  = friday_schedule.value.time
+            }
+          }
+          dynamic "saturday_schedule" {
+            for_each = var.config.stateful_agent.manual_resource_prediction.saturday_schedule
+            content {
+              count = saturday_schedule.value.count
+              time  = saturday_schedule.value.time
+            }
+          }
+          dynamic "sunday_schedule" {
+            for_each = var.config.stateful_agent.manual_resource_prediction.sunday_schedule
+            content {
+              count = sunday_schedule.value.count
+              time  = sunday_schedule.value.time
+            }
+          }
+        }
+      }
+    }
+  }
 
-      runtimeConfiguration = var.config.runtime_configuration != null ? {
-        workFolder = var.config.runtime_configuration.work_folder
-      } : null
+  virtual_machine_scale_set_fabric {
+    sku_name                     = var.config.virtual_machine_scale_set_fabric.sku_name
+    os_disk_storage_account_type = var.config.virtual_machine_scale_set_fabric.os_disk_storage_account_type
+    subnet_id                    = var.config.virtual_machine_scale_set_fabric.subnet_id
+
+    dynamic "image" {
+      for_each = var.config.virtual_machine_scale_set_fabric.image
+      content {
+        well_known_image_name = image.value.well_known_image_name
+        id                    = image.value.id
+        aliases               = image.value.aliases
+        buffer                = image.value.buffer
+      }
+    }
+
+    dynamic "storage" {
+      for_each = var.config.virtual_machine_scale_set_fabric.storage
+      content {
+        disk_size_in_gb      = storage.value.disk_size_in_gb
+        caching              = storage.value.caching
+        drive_letter         = storage.value.drive_letter
+        storage_account_type = storage.value.storage_account_type
+      }
+    }
+
+    dynamic "security" {
+      for_each = var.config.virtual_machine_scale_set_fabric.security != null ? { this = {} } : {}
+      content {
+        interactive_logon_enabled = var.config.virtual_machine_scale_set_fabric.security.interactive_logon_enabled
+        dynamic "key_vault_management" {
+          for_each = var.config.virtual_machine_scale_set_fabric.security.key_vault_management != null ? { this = {} } : {}
+          content {
+            key_vault_certificate_ids  = var.config.virtual_machine_scale_set_fabric.security.key_vault_management.key_vault_certificate_ids
+            certificate_store_location = var.config.virtual_machine_scale_set_fabric.security.key_vault_management.certificate_store_location
+            certificate_store_name     = var.config.virtual_machine_scale_set_fabric.security.key_vault_management.certificate_store_name
+            key_export_enabled         = var.config.virtual_machine_scale_set_fabric.security.key_vault_management.key_export_enabled
+          }
+        }
+      }
+    }
+  }
+
+  azure_devops_organization {
+    dynamic "organization" {
+      for_each = var.config.azure_devops_organization.organization
+      content {
+        url         = organization.value.url
+        parallelism = organization.value.parallelism
+        projects    = organization.value.projects
+      }
+    }
+
+    dynamic "permission" {
+      for_each = var.config.azure_devops_organization.permission != null ? { this = {} } : {}
+      content {
+        kind = var.config.azure_devops_organization.permission.kind
+        dynamic "administrator_account" {
+          for_each = var.config.azure_devops_organization.permission.administrator_account != null ? { this = {} } : {}
+          content {
+            groups = var.config.azure_devops_organization.permission.administrator_account.groups
+            users  = var.config.azure_devops_organization.permission.administrator_account.users
+          }
+        }
+      }
     }
   }
 }
@@ -167,7 +283,7 @@ resource "azurerm_role_assignment" "this" {
     each.value.principal_id, data.azurerm_client_config.current.object_id
   )
 
-  scope                                  = coalesce(each.value.scope, azapi_resource.this.id)
+  scope                                  = coalesce(each.value.scope, azurerm_managed_devops_pool.this.id)
   role_definition_name                   = each.value.role_definition_name
   role_definition_id                     = each.value.role_definition_id
   principal_type                         = each.value.principal_type

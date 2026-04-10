@@ -34,31 +34,27 @@ module "mdp" {
       name = module.naming.dev_center_project.name
     }
 
-    agent_profile = {
-      kind                   = "Stateful"
-      max_agent_lifetime     = "7.00:00:00"
+    stateful_agent = {
       grace_period_time_span = "1:00:00"
     }
 
-    fabric_profile = {
-      sku_name = "Standard_D2ads_v5"
-      images = [{
+    virtual_machine_scale_set_fabric = {
+      image = [{
         well_known_image_name = "ubuntu-24.04/latest"
       }]
-      data_disks = [{
+      storage = [{
         caching              = "ReadWrite"
-        disk_size_gigabytes  = 100
+        disk_size_in_gb      = 100
         storage_account_type = "Premium_LRS"
       }]
     }
 
-    organization_profile = {
-      organizations = [{
+    azure_devops_organization = {
+      organization = [{
         url = var.ado_organization_url
       }]
     }
 
-    maximum_concurrency = 1
   }
 
   tags = {

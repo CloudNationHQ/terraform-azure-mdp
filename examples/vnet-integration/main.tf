@@ -87,25 +87,21 @@ module "mdp" {
       name = module.naming.dev_center_project.name
     }
 
-    agent_profile = {
-      kind = "Stateless"
-    }
+    stateless_agent = {}
 
-    fabric_profile = {
-      sku_name  = "Standard_D2ads_v5"
+    virtual_machine_scale_set_fabric = {
       subnet_id = module.network.subnets.agents.id
-      images = [{
+      image = [{
         well_known_image_name = "ubuntu-24.04/latest"
       }]
     }
 
-    organization_profile = {
-      organizations = [{
+    azure_devops_organization = {
+      organization = [{
         url = var.ado_organization_url
       }]
     }
 
-    maximum_concurrency = 1
   }
 
   tags = {

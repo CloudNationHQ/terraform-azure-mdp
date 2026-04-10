@@ -17,17 +17,6 @@ module "rg" {
   }
 }
 
-module "identity" {
-  source  = "cloudnationhq/uai/azure"
-  version = "~> 2.0"
-
-  config = {
-    name                = module.naming.user_assigned_identity.name
-    location            = module.rg.groups.demo.location
-    resource_group_name = module.rg.groups.demo.name
-  }
-}
-
 module "mdp" {
   source  = "cloudnationhq/mdp/azure"
   version = "~> 1.0"
@@ -45,29 +34,20 @@ module "mdp" {
       name = module.naming.dev_center_project.name
     }
 
-    agent_profile = {
-      kind = "Stateless"
-    }
+    stateless_agent = {}
 
-    fabric_profile = {
-      sku_name = "Standard_D2ads_v5"
-      images = [{
+    virtual_machine_scale_set_fabric = {
+      image = [{
         well_known_image_name = "ubuntu-24.04/latest"
       }]
     }
 
-    organization_profile = {
-      organizations = [{
+    azure_devops_organization = {
+      organization = [{
         url = var.ado_organization_url
       }]
     }
 
-    identity = {
-      type         = "UserAssigned"
-      identity_ids = [module.identity.config.id]
-    }
-
-    maximum_concurrency = 1
   }
 
   tags = {
