@@ -1,4 +1,4 @@
-output "pool" {
+output "config" {
   description = "contains managed devops pool configuration"
   value       = azurerm_managed_devops_pool.this
 }
