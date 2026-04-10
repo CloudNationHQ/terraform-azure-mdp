@@ -139,8 +139,6 @@ The following resources are used by this module:
 - [azurerm_dev_center.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dev_center) (resource)
 - [azurerm_dev_center_project.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dev_center_project) (resource)
 - [azurerm_managed_devops_pool.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/managed_devops_pool) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
-- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 ## Required Inputs
 
@@ -315,20 +313,6 @@ object({
     identity = optional(object({
       type         = string
       identity_ids = optional(list(string), [])
-    }))
-
-    role_assignment = optional(object({
-      role_definition_name                   = optional(string)
-      role_definition_id                     = optional(string)
-      scope                                  = optional(string)
-      principal_id                           = optional(string)
-      principal_type                         = optional(string)
-      name                                   = optional(string)
-      description                            = optional(string)
-      condition                              = optional(string)
-      condition_version                      = optional(string)
-      delegated_managed_identity_resource_id = optional(string)
-      skip_service_principal_aad_check       = optional(bool)
     }))
   })
 ```

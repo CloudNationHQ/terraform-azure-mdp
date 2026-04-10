@@ -163,20 +163,6 @@ variable "config" {
       type         = string
       identity_ids = optional(list(string), [])
     }))
-
-    role_assignment = optional(object({
-      role_definition_name                   = optional(string)
-      role_definition_id                     = optional(string)
-      scope                                  = optional(string)
-      principal_id                           = optional(string)
-      principal_type                         = optional(string)
-      name                                   = optional(string)
-      description                            = optional(string)
-      condition                              = optional(string)
-      condition_version                      = optional(string)
-      delegated_managed_identity_resource_id = optional(string)
-      skip_service_principal_aad_check       = optional(bool)
-    }))
   })
 
   validation {

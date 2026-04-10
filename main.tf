@@ -1,5 +1,3 @@
-data "azurerm_client_config" "current" {}
-
 # dev center
 resource "azurerm_dev_center" "this" {
   for_each = var.config.dev_center != null ? { "default" = var.config.dev_center } : {}
@@ -273,24 +271,4 @@ resource "azurerm_managed_devops_pool" "this" {
       }
     }
   }
-}
-
-# role assignment
-resource "azurerm_role_assignment" "this" {
-  for_each = var.config.role_assignment != null ? { "default" = var.config.role_assignment } : {}
-
-  principal_id = coalesce(
-    each.value.principal_id, data.azurerm_client_config.current.object_id
-  )
-
-  scope                                  = coalesce(each.value.scope, azurerm_managed_devops_pool.this.id)
-  role_definition_name                   = each.value.role_definition_name
-  role_definition_id                     = each.value.role_definition_id
-  principal_type                         = each.value.principal_type
-  name                                   = each.value.name
-  description                            = each.value.description
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
