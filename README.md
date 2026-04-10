@@ -37,7 +37,6 @@ module "mdp" {
     stateless_agent = {}
 
     virtual_machine_scale_set_fabric = {
-      sku_name = "Standard_D2ads_v5"
       image = [{
         well_known_image_name = "ubuntu-24.04/latest"
       }]
@@ -48,8 +47,6 @@ module "mdp" {
         url = "https://dev.azure.com/myorg"
       }]
     }
-
-    maximum_concurrency = 1
   }
 }
 ```
@@ -69,10 +66,8 @@ module "mdp" {
     dev_center_project_id = azurerm_dev_center_project.existing.id
 
     stateful_agent = {
-      maximum_agent_lifetime = "7.00:00:00"
       grace_period_time_span = "1:00:00"
       manual_resource_prediction = {
-        time_zone_name = "UTC"
         monday_schedule = [
           { count = 3, time = "07:00:00" },
           { count = 0, time = "18:00:00" },
@@ -97,7 +92,6 @@ module "mdp" {
     }
 
     virtual_machine_scale_set_fabric = {
-      sku_name  = "Standard_D2ads_v5"
       subnet_id = azurerm_subnet.agents.id
       image = [{
         well_known_image_name = "ubuntu-24.04/latest"
