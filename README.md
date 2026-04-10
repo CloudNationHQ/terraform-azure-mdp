@@ -365,10 +365,6 @@ Default: `{}`
 
 The following outputs are exported:
 
-### <a name="output_config"></a> [config](#output\_config)
-
-Description: contains managed devops pool configuration
-
 ### <a name="output_dev_center"></a> [dev\_center](#output\_dev\_center)
 
 Description: contains dev center configuration
@@ -376,6 +372,10 @@ Description: contains dev center configuration
 ### <a name="output_dev_center_project"></a> [dev\_center\_project](#output\_dev\_center\_project)
 
 Description: contains dev center project configuration
+
+### <a name="output_pool"></a> [pool](#output\_pool)
+
+Description: contains managed devops pool configuration
 <!-- END_TF_DOCS -->
 
 ## Goals

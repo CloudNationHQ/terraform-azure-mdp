@@ -180,8 +180,28 @@ variable "config" {
   })
 
   validation {
+    condition     = var.config.location != null || var.location != null
+    error_message = "location must be provided either in the config object or as a separate variable."
+  }
+
+  validation {
+    condition     = var.config.resource_group_name != null || var.resource_group_name != null
+    error_message = "resource group name must be provided either in the config object or as a separate variable."
+  }
+
+  validation {
+    condition     = var.config.dev_center_project_id != null || var.config.dev_center_project != null
+    error_message = "either dev_center_project_id or dev_center_project must be provided."
+  }
+
+  validation {
+    condition     = var.config.identity == null || var.config.identity.type == "UserAssigned"
+    error_message = "managed devops pool identity only supports type 'UserAssigned'."
+  }
+
+  validation {
     condition     = (var.config.stateless_agent != null) != (var.config.stateful_agent != null)
-    error_message = "Exactly one of stateless_agent or stateful_agent must be set."
+    error_message = "exactly one of stateless_agent or stateful_agent must be set."
   }
 }
 
