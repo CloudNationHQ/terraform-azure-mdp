@@ -21,6 +21,8 @@ module "mdp" {
   source  = "cloudnationhq/mdp/azure"
   version = "~> 1.0"
 
+  ado_organization_url = var.ado_organization_url
+
   config = {
     name                = module.naming.managed_devops_pool.name_unique
     location            = module.rg.groups.demo.location
@@ -36,40 +38,43 @@ module "mdp" {
 
     stateless_agent = {
       manual_resource_prediction = {
-        monday_schedule = [
-          { count = 2, time = "07:00:00" },
-          { count = 0, time = "18:00:00" },
-        ]
-        tuesday_schedule = [
-          { count = 2, time = "07:00:00" },
-          { count = 0, time = "18:00:00" },
-        ]
-        wednesday_schedule = [
-          { count = 2, time = "07:00:00" },
-          { count = 0, time = "18:00:00" },
-        ]
-        thursday_schedule = [
-          { count = 2, time = "07:00:00" },
-          { count = 0, time = "18:00:00" },
-        ]
-        friday_schedule = [
-          { count = 2, time = "07:00:00" },
-          { count = 0, time = "18:00:00" },
-        ]
+        monday_schedule = {
+          morning = { count = 2, time = "07:00:00" }
+          evening = { count = 0, time = "18:00:00" }
+        }
+        tuesday_schedule = {
+          morning = { count = 2, time = "07:00:00" }
+          evening = { count = 0, time = "18:00:00" }
+        }
+        wednesday_schedule = {
+          morning = { count = 2, time = "07:00:00" }
+          evening = { count = 0, time = "18:00:00" }
+        }
+        thursday_schedule = {
+          morning = { count = 2, time = "07:00:00" }
+          evening = { count = 0, time = "18:00:00" }
+        }
+        friday_schedule = {
+          morning = { count = 2, time = "07:00:00" }
+          evening = { count = 0, time = "18:00:00" }
+        }
       }
     }
 
     virtual_machine_scale_set_fabric = {
-      image = [{
-        well_known_image_name = "ubuntu-24.04/latest"
-      }]
+      image = {
+        primary = {
+          well_known_image_name = "ubuntu-24.04/latest"
+        }
+      }
     }
 
     azure_devops_organization = {
-      organization = [{
-        url         = var.ado_organization_url
-        parallelism = 2
-      }]
+      organization = {
+        demo = {
+          parallelism = 2
+        }
+      }
     }
 
     maximum_concurrency = 2

@@ -17,7 +17,7 @@ variable "config" {
       tags                              = optional(map(string))
       project_catalog_item_sync_enabled = optional(bool, false)
       identity = optional(object({
-        type         = optional(string, "SystemAssigned")
+        type         = string
         identity_ids = optional(list(string), [])
       }))
     }))
@@ -31,7 +31,7 @@ variable "config" {
       tags                       = optional(map(string))
       maximum_dev_boxes_per_user = optional(number)
       identity = optional(object({
-        type         = optional(string, "SystemAssigned")
+        type         = string
         identity_ids = optional(list(string), [])
       }))
     }))
@@ -43,34 +43,34 @@ variable "config" {
       manual_resource_prediction = optional(object({
         time_zone_name    = optional(string, "UTC")
         all_week_schedule = optional(number)
-        monday_schedule = optional(list(object({
+        monday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        tuesday_schedule = optional(list(object({
+        })), {})
+        tuesday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        wednesday_schedule = optional(list(object({
+        })), {})
+        wednesday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        thursday_schedule = optional(list(object({
+        })), {})
+        thursday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        friday_schedule = optional(list(object({
+        })), {})
+        friday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        saturday_schedule = optional(list(object({
+        })), {})
+        saturday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        sunday_schedule = optional(list(object({
+        })), {})
+        sunday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
+        })), {})
       }))
     }))
 
@@ -83,34 +83,34 @@ variable "config" {
       manual_resource_prediction = optional(object({
         time_zone_name    = optional(string, "UTC")
         all_week_schedule = optional(number)
-        monday_schedule = optional(list(object({
+        monday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        tuesday_schedule = optional(list(object({
+        })), {})
+        tuesday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        wednesday_schedule = optional(list(object({
+        })), {})
+        wednesday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        thursday_schedule = optional(list(object({
+        })), {})
+        thursday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        friday_schedule = optional(list(object({
+        })), {})
+        friday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        saturday_schedule = optional(list(object({
+        })), {})
+        saturday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
-        sunday_schedule = optional(list(object({
+        })), {})
+        sunday_schedule = optional(map(object({
           count = number
           time  = string
-        })), [])
+        })), {})
       }))
     }))
 
@@ -119,19 +119,19 @@ variable "config" {
       os_disk_storage_account_type = optional(string, "Standard")
       subnet_id                    = optional(string)
 
-      image = list(object({
+      image = map(object({
         well_known_image_name = optional(string)
         id                    = optional(string)
         aliases               = optional(list(string))
         buffer                = optional(string, "*")
       }))
 
-      storage = optional(list(object({
+      storage = optional(map(object({
         disk_size_in_gb      = number
         caching              = optional(string)
         drive_letter         = optional(string)
         storage_account_type = optional(string, "Standard_LRS")
-      })), [])
+      })), {})
 
       security = optional(object({
         interactive_logon_enabled = optional(bool, false)
@@ -145,13 +145,13 @@ variable "config" {
     })
 
     azure_devops_organization = object({
-      organization = list(object({
-        url         = string
-        parallelism = optional(number, 1)
+      organization = map(object({
+        url         = optional(string)
+        parallelism = number
         projects    = optional(list(string))
       }))
       permission = optional(object({
-        kind = optional(string, "Inherit")
+        kind = string
         administrator_account = optional(object({
           groups = optional(list(string))
           users  = optional(list(string))
@@ -189,6 +189,20 @@ variable "config" {
     condition     = (var.config.stateless_agent != null) != (var.config.stateful_agent != null)
     error_message = "exactly one of stateless_agent or stateful_agent must be set."
   }
+
+  validation {
+    condition = alltrue([
+      for org in values(var.config.azure_devops_organization.organization) :
+      org.url != null || var.ado_organization_url != null
+    ])
+    error_message = "each organization must have a url, or ado_organization_url must be provided."
+  }
+}
+
+variable "ado_organization_url" {
+  description = "URL of the Azure DevOps organization to link the pool to, e.g. https://dev.azure.com/myorg"
+  type        = string
+  default     = null
 }
 
 variable "location" {

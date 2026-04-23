@@ -21,6 +21,8 @@ module "mdp" {
   source  = "cloudnationhq/mdp/azure"
   version = "~> 1.0"
 
+  ado_organization_url = var.ado_organization_url
+
   config = {
     name                = module.naming.managed_devops_pool.name_unique
     location            = module.rg.groups.demo.location
@@ -37,15 +39,19 @@ module "mdp" {
     stateless_agent = {}
 
     virtual_machine_scale_set_fabric = {
-      image = [{
-        well_known_image_name = "ubuntu-24.04/latest"
-      }]
+      image = {
+        primary = {
+          well_known_image_name = "ubuntu-24.04/latest"
+        }
+      }
     }
 
     azure_devops_organization = {
-      organization = [{
-        url = var.ado_organization_url
-      }]
+      organization = {
+        demo = {
+          parallelism = 1
+        }
+      }
     }
 
   }

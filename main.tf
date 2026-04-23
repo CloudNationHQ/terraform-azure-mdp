@@ -251,7 +251,7 @@ resource "azurerm_managed_devops_pool" "this" {
     dynamic "organization" {
       for_each = var.config.azure_devops_organization.organization
       content {
-        url         = organization.value.url
+        url         = coalesce(organization.value.url, var.ado_organization_url)
         parallelism = organization.value.parallelism
         projects    = organization.value.projects
       }
