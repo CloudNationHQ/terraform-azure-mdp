@@ -74,6 +74,8 @@ module "mdp" {
 
   depends_on = [module.rbac]
 
+  ado_organization_url = var.ado_organization_url
+
   config = {
     name                = module.naming.managed_devops_pool.name_unique
     location            = module.rg.groups.demo.location
@@ -91,15 +93,19 @@ module "mdp" {
 
     virtual_machine_scale_set_fabric = {
       subnet_id = module.network.subnets.agents.id
-      image = [{
-        well_known_image_name = "ubuntu-24.04/latest"
-      }]
+      image = {
+        primary = {
+          well_known_image_name = "ubuntu-24.04/latest"
+        }
+      }
     }
 
     azure_devops_organization = {
-      organization = [{
-        url = var.ado_organization_url
-      }]
+      organization = {
+        demo = {
+          parallelism = 1
+        }
+      }
     }
 
   }

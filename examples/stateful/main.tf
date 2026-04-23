@@ -21,6 +21,8 @@ module "mdp" {
   source  = "cloudnationhq/mdp/azure"
   version = "~> 1.0"
 
+  ado_organization_url = var.ado_organization_url
+
   config = {
     name                = module.naming.managed_devops_pool.name_unique
     location            = module.rg.groups.demo.location
@@ -39,20 +41,26 @@ module "mdp" {
     }
 
     virtual_machine_scale_set_fabric = {
-      image = [{
-        well_known_image_name = "ubuntu-24.04/latest"
-      }]
-      storage = [{
-        caching              = "ReadWrite"
-        disk_size_in_gb      = 100
-        storage_account_type = "Premium_LRS"
-      }]
+      image = {
+        primary = {
+          well_known_image_name = "ubuntu-24.04/latest"
+        }
+      }
+      storage = {
+        data = {
+          caching              = "ReadWrite"
+          disk_size_in_gb      = 100
+          storage_account_type = "Premium_LRS"
+        }
+      }
     }
 
     azure_devops_organization = {
-      organization = [{
-        url = var.ado_organization_url
-      }]
+      organization = {
+        demo = {
+          parallelism = 1
+        }
+      }
     }
 
   }
