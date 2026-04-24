@@ -228,7 +228,7 @@ The following input variables are optional (have default values):
 
 ### <a name="input_ado_organization_url"></a> [ado\_organization\_url](#input\_ado\_organization\_url)
 
-Description: URL of the Azure DevOps organization to link the pool to, e.g. https://dev.azure.com/myorg
+Description: URL of the Azure DevOps organization to link the pool to, e.g. `https://dev.azure.com/myorg`
 
 Type: `string`
 
