@@ -228,7 +228,7 @@ The following input variables are optional (have default values):
 
 ### <a name="input_ado_organization_url"></a> [ado\_organization\_url](#input\_ado\_organization\_url)
 
-Description: URL of the Azure DevOps organization to link the pool to, e.g. https://dev.azure.com/\<your-org\>
+Description: URL of the Azure DevOps organization to link the pool to, e.g. `https://dev.azure.com/<your-org>`
 
 Type: `string`
 
@@ -289,7 +289,7 @@ Using a dedicated module, we've developed a naming convention for resources that
 
 Full examples detailing all usages, along with integrations with dependency modules, are located in the examples directory.
 
-To update the module's documentation run `make doc`
+To update the module's documentation run `make docs`
 
 `dev_center_project_id` and the inline `dev_center_project` block are mutually exclusive — provide one or the other.
 
@@ -297,7 +297,7 @@ The `dev_center_project.dev_center_id` field is only needed when attaching an ex
 
 Exactly one of `stateless_agent` or `stateful_agent` must be set.
 
-Manual resource predictions use per-day schedule blocks (`monday_schedule` through `sunday_schedule`), each containing a list of `{ count, time }` entries. Omit a day block to leave that day idle. Use `all_week_schedule` for a flat 24/7 standby count instead.
+Manual resource predictions use per-day schedule blocks (`monday_schedule` through `sunday_schedule`), each containing a map of `{ count, time }` entries keyed by a name of your choice (e.g. `morning`, `evening`). Omit a day block to leave that day idle. Use `all_week_schedule` for a flat 24/7 standby count instead.
 
 Pool identity only supports `UserAssigned` type. Dev Center and Dev Center Project resources support `SystemAssigned` and `UserAssigned`.
 
