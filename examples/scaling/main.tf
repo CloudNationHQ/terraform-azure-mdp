@@ -7,7 +7,7 @@ module "naming" {
 
 module "rg" {
   source  = "cloudnationhq/rg/azure"
-  version = "~> 2.0"
+  version = "~> 3.0"
 
   groups = {
     demo = {
@@ -19,11 +19,11 @@ module "rg" {
 
 module "mdp" {
   source  = "cloudnationhq/mdp/azure"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   ado_organization_url = var.ado_organization_url
 
-  config = {
+  pool = {
     name                = module.naming.managed_devops_pool.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
@@ -62,6 +62,7 @@ module "mdp" {
     }
 
     virtual_machine_scale_set_fabric = {
+      sku_name = "Standard_D2ads_v5"
       image = {
         primary = {
           well_known_image_name = "ubuntu-24.04/latest"

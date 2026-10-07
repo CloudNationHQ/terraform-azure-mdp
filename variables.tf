@@ -1,11 +1,11 @@
-variable "config" {
+variable "pool" {
   description = "contains managed devops pool configuration"
   type = object({
     name                = string
     location            = optional(string)
     resource_group_name = optional(string)
     tags                = optional(map(string))
-    maximum_concurrency = optional(number, 1)
+    maximum_concurrency = number
     work_folder         = optional(string)
 
     dev_center_project_id = optional(string)
@@ -15,10 +15,10 @@ variable "config" {
       location                          = optional(string)
       resource_group_name               = optional(string)
       tags                              = optional(map(string))
-      project_catalog_item_sync_enabled = optional(bool, false)
+      project_catalog_item_sync_enabled = optional(bool)
       identity = optional(object({
         type         = string
-        identity_ids = optional(list(string), [])
+        identity_ids = optional(list(string))
       }))
     }))
 
@@ -32,16 +32,16 @@ variable "config" {
       maximum_dev_boxes_per_user = optional(number)
       identity = optional(object({
         type         = string
-        identity_ids = optional(list(string), [])
+        identity_ids = optional(list(string))
       }))
     }))
 
     stateless_agent = optional(object({
       automatic_resource_prediction = optional(object({
-        prediction_preference = optional(string, "Balanced")
+        prediction_preference = optional(string)
       }))
       manual_resource_prediction = optional(object({
-        time_zone_name    = optional(string, "UTC")
+        time_zone_name    = optional(string)
         all_week_schedule = optional(number)
         monday_schedule = optional(map(object({
           count = number
@@ -75,13 +75,13 @@ variable "config" {
     }))
 
     stateful_agent = optional(object({
-      grace_period_time_span = optional(string, "00:00:00")
-      maximum_agent_lifetime = optional(string, "7.00:00:00")
+      grace_period_time_span = optional(string)
+      maximum_agent_lifetime = optional(string)
       automatic_resource_prediction = optional(object({
-        prediction_preference = optional(string, "Balanced")
+        prediction_preference = optional(string)
       }))
       manual_resource_prediction = optional(object({
-        time_zone_name    = optional(string, "UTC")
+        time_zone_name    = optional(string)
         all_week_schedule = optional(number)
         monday_schedule = optional(map(object({
           count = number
@@ -115,31 +115,31 @@ variable "config" {
     }))
 
     virtual_machine_scale_set_fabric = object({
-      sku_name                     = optional(string, "Standard_D2ads_v5")
-      os_disk_storage_account_type = optional(string, "Standard")
+      sku_name                     = string
+      os_disk_storage_account_type = optional(string)
       subnet_id                    = optional(string)
 
       image = map(object({
         well_known_image_name = optional(string)
         id                    = optional(string)
         aliases               = optional(list(string))
-        buffer                = optional(string, "*")
+        buffer                = optional(string)
       }))
 
-      storage = optional(map(object({
+      storage = optional(object({
         disk_size_in_gb      = number
         caching              = optional(string)
         drive_letter         = optional(string)
-        storage_account_type = optional(string, "Standard_LRS")
-      })), {})
+        storage_account_type = optional(string)
+      }))
 
       security = optional(object({
-        interactive_logon_enabled = optional(bool, false)
+        interactive_logon_enabled = optional(bool)
         key_vault_management = optional(object({
           key_vault_certificate_ids  = list(string)
           certificate_store_location = optional(string)
           certificate_store_name     = optional(string)
-          key_export_enabled         = optional(bool, false)
+          key_export_enabled         = optional(bool)
         }))
       }))
     })
@@ -161,38 +161,38 @@ variable "config" {
 
     identity = optional(object({
       type         = string
-      identity_ids = optional(list(string), [])
+      identity_ids = list(string)
     }))
   })
 
   validation {
-    condition     = var.config.location != null || var.location != null
-    error_message = "location must be provided either in the config object or as a separate variable."
+    condition     = lookup(var.pool, "location", null) != null || var.location != null
+    error_message = "location must be set on var.pool.location or on the module-level var.location."
   }
 
   validation {
-    condition     = var.config.resource_group_name != null || var.resource_group_name != null
-    error_message = "resource group name must be provided either in the config object or as a separate variable."
+    condition     = lookup(var.pool, "resource_group_name", null) != null || var.resource_group_name != null
+    error_message = "resource_group_name must be set on var.pool.resource_group_name or on the module-level var.resource_group_name."
   }
 
   validation {
-    condition     = var.config.dev_center_project_id != null || var.config.dev_center_project != null
+    condition     = var.pool.dev_center_project_id != null || var.pool.dev_center_project != null
     error_message = "either dev_center_project_id or dev_center_project must be provided."
   }
 
   validation {
-    condition     = var.config.identity == null || var.config.identity.type == "UserAssigned"
+    condition     = var.pool.identity == null || var.pool.identity.type == "UserAssigned"
     error_message = "managed devops pool identity only supports type 'UserAssigned'."
   }
 
   validation {
-    condition     = (var.config.stateless_agent != null) != (var.config.stateful_agent != null)
+    condition     = (var.pool.stateless_agent != null) != (var.pool.stateful_agent != null)
     error_message = "exactly one of stateless_agent or stateful_agent must be set."
   }
 
   validation {
     condition = alltrue([
-      for org in values(var.config.azure_devops_organization.organization) :
+      for org in values(var.pool.azure_devops_organization.organization) :
       org.url != null || var.ado_organization_url != null
     ])
     error_message = "each organization must have a url, or ado_organization_url must be provided."

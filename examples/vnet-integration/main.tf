@@ -7,7 +7,7 @@ module "naming" {
 
 module "rg" {
   source  = "cloudnationhq/rg/azure"
-  version = "~> 2.0"
+  version = "~> 3.0"
 
   groups = {
     demo = {
@@ -19,9 +19,7 @@ module "rg" {
 
 module "network" {
   source  = "cloudnationhq/vnet/azure"
-  version = "~> 9.0"
-
-  naming = local.naming
+  version = "~> 10.0"
 
   vnet = {
     name                = module.naming.virtual_network.name
@@ -46,7 +44,7 @@ module "network" {
 
 module "rbac" {
   source  = "cloudnationhq/rbac/azure"
-  version = "~> 2.0"
+  version = "~> 4.0"
 
   role_assignments = {
     "DevOpsInfrastructure" = {
@@ -55,12 +53,12 @@ module "rbac" {
       roles = {
         "Reader" = {
           scopes = {
-            vnet = module.network.vnet.id
+            vnet = { id = module.network.vnet.id }
           }
         }
         "Network Contributor" = {
           scopes = {
-            vnet = module.network.vnet.id
+            vnet = { id = module.network.vnet.id }
           }
         }
       }
@@ -70,16 +68,17 @@ module "rbac" {
 
 module "mdp" {
   source  = "cloudnationhq/mdp/azure"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   depends_on = [module.rbac]
 
   ado_organization_url = var.ado_organization_url
 
-  config = {
+  pool = {
     name                = module.naming.managed_devops_pool.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
+    maximum_concurrency = 1
 
     dev_center = {
       name = module.naming.dev_center.name_unique
@@ -92,6 +91,7 @@ module "mdp" {
     stateless_agent = {}
 
     virtual_machine_scale_set_fabric = {
+      sku_name  = "Standard_D2ads_v5"
       subnet_id = module.network.subnets.agents.id
       image = {
         primary = {
