@@ -174,29 +174,6 @@ variable "pool" {
     condition     = lookup(var.pool, "resource_group_name", null) != null || var.resource_group_name != null
     error_message = "resource_group_name must be set on var.pool.resource_group_name or on the module-level var.resource_group_name."
   }
-
-  validation {
-    condition     = var.pool.dev_center_project_id != null || var.pool.dev_center_project != null
-    error_message = "either dev_center_project_id or dev_center_project must be provided."
-  }
-
-  validation {
-    condition     = var.pool.identity == null || var.pool.identity.type == "UserAssigned"
-    error_message = "managed devops pool identity only supports type 'UserAssigned'."
-  }
-
-  validation {
-    condition     = (var.pool.stateless_agent != null) != (var.pool.stateful_agent != null)
-    error_message = "exactly one of stateless_agent or stateful_agent must be set."
-  }
-
-  validation {
-    condition = alltrue([
-      for org in values(var.pool.azure_devops_organization.organization) :
-      org.url != null || var.ado_organization_url != null
-    ])
-    error_message = "each organization must have a url, or ado_organization_url must be provided."
-  }
 }
 
 variable "ado_organization_url" {
