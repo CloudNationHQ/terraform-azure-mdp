@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.0](https://github.com/CloudNationHQ/terraform-azure-mdp/compare/v1.0.0...v2.0.0) (2026-10-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to azurerm v5 and align with CN module standards
+
+### Features
+
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#5](https://github.com/CloudNationHQ/terraform-azure-mdp/issues/5)) ([ed43a92](https://github.com/CloudNationHQ/terraform-azure-mdp/commit/ed43a92b59bb9bb40bd36dec6bea0514c3ee36b1))
+* **deps:** bump golang.org/x/crypto from 0.45.0 to 0.52.0 in /tests ([8150f3c](https://github.com/CloudNationHQ/terraform-azure-mdp/commit/8150f3cfbb6601669a626018aaeb2e1e7e87e733))
+* **deps:** bump golang.org/x/crypto from 0.45.0 to 0.52.0 in /tests ([dda65cb](https://github.com/CloudNationHQ/terraform-azure-mdp/commit/dda65cb4a6512b6125d154e1040cc2f54eb3f3a4))
+* upgrade to azurerm v5 and align with CN module standards ([2078878](https://github.com/CloudNationHQ/terraform-azure-mdp/commit/20788784ddf131d700186356adae2ca43ca6c401))
+
 ## 1.0.0 (2026-04-24)
 
 
