@@ -29,7 +29,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.0)
 
 ## Providers
 
@@ -49,7 +49,7 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_config"></a> [config](#input\_config)
+### <a name="input_pool"></a> [pool](#input\_pool)
 
 Description: contains managed devops pool configuration
 
@@ -61,7 +61,7 @@ object({
     location            = optional(string)
     resource_group_name = optional(string)
     tags                = optional(map(string))
-    maximum_concurrency = optional(number, 1)
+    maximum_concurrency = number
     work_folder         = optional(string)
 
     dev_center_project_id = optional(string)
@@ -71,10 +71,10 @@ object({
       location                          = optional(string)
       resource_group_name               = optional(string)
       tags                              = optional(map(string))
-      project_catalog_item_sync_enabled = optional(bool, false)
+      project_catalog_item_sync_enabled = optional(bool)
       identity = optional(object({
         type         = string
-        identity_ids = optional(list(string), [])
+        identity_ids = optional(list(string))
       }))
     }))
 
@@ -88,16 +88,16 @@ object({
       maximum_dev_boxes_per_user = optional(number)
       identity = optional(object({
         type         = string
-        identity_ids = optional(list(string), [])
+        identity_ids = optional(list(string))
       }))
     }))
 
     stateless_agent = optional(object({
       automatic_resource_prediction = optional(object({
-        prediction_preference = optional(string, "Balanced")
+        prediction_preference = optional(string)
       }))
       manual_resource_prediction = optional(object({
-        time_zone_name    = optional(string, "UTC")
+        time_zone_name    = optional(string)
         all_week_schedule = optional(number)
         monday_schedule = optional(map(object({
           count = number
@@ -131,13 +131,13 @@ object({
     }))
 
     stateful_agent = optional(object({
-      grace_period_time_span = optional(string, "00:00:00")
-      maximum_agent_lifetime = optional(string, "7.00:00:00")
+      grace_period_time_span = optional(string)
+      maximum_agent_lifetime = optional(string)
       automatic_resource_prediction = optional(object({
-        prediction_preference = optional(string, "Balanced")
+        prediction_preference = optional(string)
       }))
       manual_resource_prediction = optional(object({
-        time_zone_name    = optional(string, "UTC")
+        time_zone_name    = optional(string)
         all_week_schedule = optional(number)
         monday_schedule = optional(map(object({
           count = number
@@ -171,31 +171,31 @@ object({
     }))
 
     virtual_machine_scale_set_fabric = object({
-      sku_name                     = optional(string, "Standard_D2ads_v5")
-      os_disk_storage_account_type = optional(string, "Standard")
+      sku_name                     = string
+      os_disk_storage_account_type = optional(string)
       subnet_id                    = optional(string)
 
       image = map(object({
         well_known_image_name = optional(string)
         id                    = optional(string)
         aliases               = optional(list(string))
-        buffer                = optional(string, "*")
+        buffer                = optional(string)
       }))
 
-      storage = optional(map(object({
+      storage = optional(object({
         disk_size_in_gb      = number
         caching              = optional(string)
         drive_letter         = optional(string)
-        storage_account_type = optional(string, "Standard_LRS")
-      })), {})
+        storage_account_type = optional(string)
+      }))
 
       security = optional(object({
-        interactive_logon_enabled = optional(bool, false)
+        interactive_logon_enabled = optional(bool)
         key_vault_management = optional(object({
           key_vault_certificate_ids  = list(string)
           certificate_store_location = optional(string)
           certificate_store_name     = optional(string)
-          key_export_enabled         = optional(bool, false)
+          key_export_enabled         = optional(bool)
         }))
       }))
     })
@@ -217,7 +217,7 @@ object({
 
     identity = optional(object({
       type         = string
-      identity_ids = optional(list(string), [])
+      identity_ids = list(string)
     }))
   })
 ```
@@ -228,7 +228,7 @@ The following input variables are optional (have default values):
 
 ### <a name="input_ado_organization_url"></a> [ado\_organization\_url](#input\_ado\_organization\_url)
 
-Description: URL of the Azure DevOps organization to link the pool to, e.g. https://dev.azure.com/\<your-org\>
+Description: URL of the Azure DevOps organization to link the pool to, e.g. `https://dev.azure.com/<your-org>`
 
 Type: `string`
 
@@ -289,7 +289,7 @@ Using a dedicated module, we've developed a naming convention for resources that
 
 Full examples detailing all usages, along with integrations with dependency modules, are located in the examples directory.
 
-To update the module's documentation run `make doc`
+To update the module's documentation run `make docs`
 
 `dev_center_project_id` and the inline `dev_center_project` block are mutually exclusive — provide one or the other.
 
@@ -297,7 +297,7 @@ The `dev_center_project.dev_center_id` field is only needed when attaching an ex
 
 Exactly one of `stateless_agent` or `stateful_agent` must be set.
 
-Manual resource predictions use per-day schedule blocks (`monday_schedule` through `sunday_schedule`), each containing a list of `{ count, time }` entries. Omit a day block to leave that day idle. Use `all_week_schedule` for a flat 24/7 standby count instead.
+Manual resource predictions use per-day schedule blocks (`monday_schedule` through `sunday_schedule`), each containing a map of `{ count, time }` entries keyed by a name of your choice (e.g. `morning`, `evening`). Omit a day block to leave that day idle. Use `all_week_schedule` for a flat 24/7 standby count instead.
 
 Pool identity only supports `UserAssigned` type. Dev Center and Dev Center Project resources support `SystemAssigned` and `UserAssigned`.
 
