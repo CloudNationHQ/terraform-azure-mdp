@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/CloudNationHQ/terraform-azure-mdp/compare/v2.0.0...v2.1.0) (2026-10-20)
+
+
+### Features
+
+* **deps:** bump github.com/klauspost/compress in /tests ([#10](https://github.com/CloudNationHQ/terraform-azure-mdp/issues/10)) ([10c6854](https://github.com/CloudNationHQ/terraform-azure-mdp/commit/10c6854af231a2f341146901054adf67e7371db8))
+
 ## [2.0.0](https://github.com/CloudNationHQ/terraform-azure-mdp/compare/v1.0.0...v2.0.0) (2026-10-19)
 
 
